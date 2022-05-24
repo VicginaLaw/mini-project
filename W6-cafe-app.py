@@ -1,5 +1,4 @@
 import pymysql
-from sqlalchemy import true
 from tabulate import tabulate
 
 connection = pymysql.connect(
@@ -30,8 +29,8 @@ def view_couriers():
     cursor.close()
 
 def view_orders():
-    while true:
-        print ("\n----- View Order List -----")
+    while True:
+        print ("\n----- View Order -----")
         print ("[0] By Order ID")
         print ("[1] By Status")
         print ("[2] By Courier")
@@ -97,12 +96,12 @@ def view_order_status():
     cursor.close()
 
 def add_new_product():
-    while true:
+    while True:
         print ("\n----- Create New Product -----")
 
         try:
             new_product = input("Add a new product: ").title().strip()
-            new_price = float (input(f"Set a price of {new_product}: ")) 
+            new_price = float (input (f"Set a price of {new_product}: ")) 
         
         except: 
             invaild()
@@ -118,7 +117,7 @@ def add_new_product():
         break
 
 def add_new_courier():
-    while true:
+    while True:
         print ("\n----- Create New Courier -----")
 
         new_courier = input("The name of new courier: ").title().strip()
@@ -139,7 +138,7 @@ def add_new_courier():
         break
 
 def add_new_order():
-    while true:
+    while True:
         print ("\n----- Create New Order -----")
 
         name = input ("Customer Name: ").title().strip()
@@ -153,7 +152,7 @@ def add_new_order():
 
         view_products()
         print("\nPlease Chooose the items! If more than one item, please use comma to separate them. e.g '1,3,4'")
-        item = input ("Type in the Product IDs:").strip()
+        item = input ("Type in the Product IDs: ").strip()
 
         if item == "" :
             invaild()
@@ -179,7 +178,7 @@ def add_new_order():
         break
 
 def delete_product():
-    while true:
+    while True:
         try: 
             print ("\n----- Delete Product -----")
             view_products()
@@ -200,20 +199,28 @@ def delete_product():
         break
 
 def delete_courier():
-    print ("\n----- Delete Courier -----")
-    view_couriers()    
-    del_item = int (input("\nThe ID of courier need to delete: "))
+    while True:
+        try: 
+            print ("\n----- Delete Courier -----")
+            view_couriers()    
+            del_item = int (input("\nThe ID of courier need to delete: "))
+        
+        except:
+            invaild()
+            print("Please input the INDEX only.")
+            continue
 
-    cursor = connection.cursor()
-    sql = (f"DELETE FROM Couriers WHERE Courier_id = {del_item}")
-    cursor.execute(sql)
-    connection.commit()
-    cursor.close()
-            
-    print ("\nThe Courier is deleted.")
+        cursor = connection.cursor()
+        sql = (f"DELETE FROM Couriers WHERE Courier_id = {del_item}")
+        cursor.execute(sql)
+        connection.commit()
+        cursor.close()
+                
+        print ("\nThe Courier is deleted.")
+        break
 
 def delete_order():
-    while true:
+    while True:
         try: 
             print ("\n----- Delete Order -----")
             view_orders()            
@@ -234,22 +241,37 @@ def delete_order():
         break
 
 def update_order_status():
-    print ("\n----- Update Existing Order Status -----")
-    view_orders()            
-    order_update = int (input ("\nThe ID of order need to update: "))
+    while True:
+        try:
+            print ("\n----- Update Existing Order Status -----")
+            view_orders()            
+            order_update = int (input ("\nThe ID of order need to update: "))
+        
+        except:
+            invaild()
+            print("Please input the INDEX only.")
+            continue
 
-    view_order_status()            
-    status_update = int (input ("\nType in the updated status ID: "))
+        try:
+            view_order_status()            
+            status_update = int (input ("\nType in the updated status ID: "))
 
-    cursor = connection.cursor()
-    sql = (f"UPDATE Orders SET Status = {status_update} WHERE Order_id = {order_update}")
-    cursor.execute(sql)
-    connection.commit()
-    cursor.close()
-    print("\nThe Order Status is Updated")
+        except:
+            invaild()
+            print("Please input the INDEX only.")
+            continue
+
+        cursor = connection.cursor()
+        sql = (f"UPDATE Orders SET Status = {status_update} WHERE Order_id = {order_update}")
+        cursor.execute(sql)
+        connection.commit()
+        cursor.close()
+
+        print("\nThe Order Status is Updated")
+        break
 
 def update_order():
-    while true:
+    while True:
         try: 
             print ("\n----- Update Existing Order Status -----")
             view_orders()            
@@ -278,7 +300,7 @@ def update_order():
         break
 
 def update_product():
-    while true:
+    while True:
         try: 
             print ("\n----- Update Existing Product -----")
 
@@ -324,7 +346,7 @@ def update_product():
             break
 
 def update_courier():
-    while true:
+    while True:
         try: 
             print ("\n----- Update Existing Product -----")
             view_couriers()
@@ -380,7 +402,8 @@ def Print_Menu(menu):
     print (f"[1] View {menu} List")
     print (f"[2] Create New {menu}")
     print (f"[3] Update Existing {menu}")
-    print (f"[4] Delete {menu} \n")
+    print (f"[4] Delete {menu}") 
+    print (f"[5] Export CSV File for Existing {menu} List\n")
 
 def Order_Menu():
     print ("\n----- Order Menu -----")
@@ -389,12 +412,33 @@ def Order_Menu():
     print ("[2] Create New Order")
     print ("[3] Update Existing Order Status")
     print ("[4] Update Existing Order") 
-    print ("[5] Delete Order\n")
+    print ("[5] Delete Order")
+    print ("[6] Export CSV File for Existing Order List\n")
 
 def invaild():
     print ("\n----- Invaild Answer -----")
     print ("Please enter a valid input!")
 
+def fetch_table_data(table_name):
+    cursor = connection.cursor()
+    sql = (f"SELECT * FROM {table_name}")
+    cursor.execute(sql)
+    header = [row[0] for row in cursor.description]
+    rows = cursor.fetchall()
+    cursor.close()
+    return header, rows
+
+def export_csv(table_name):
+    header, rows = fetch_table_data(table_name)
+    f = open(table_name + '.csv', 'w')
+    f.write(','.join(header) + '\n')
+
+    for row in rows:
+        f.write(','.join(str(r) for r in row) + '\n')
+
+    f.close()
+    print (f"\n{table_name}.csv is exported successfully!")
+    
 while True:
     Main_Menu()
     
@@ -432,7 +476,11 @@ while True:
         elif pm == 4: #DELETE courier
             delete_product()
 
-        elif pm > 4: invaild()
+        elif pm == 5:
+            fetch_table_data('Products')
+            export_csv('Products')
+
+        elif pm > 5: invaild()
 
     while mm == 2:
         Print_Menu("Courier")
@@ -456,7 +504,11 @@ while True:
         elif cm == 4: #DELETE courier
             delete_courier()
 
-        elif cm > 4: invaild()
+        elif cm == 5:
+            fetch_table_data('Couriers')
+            export_csv('Couriers')
+
+        elif cm > 5: invaild()
     
     while mm == 3: # orders menu
         Order_Menu()
@@ -486,7 +538,11 @@ while True:
         elif om == 5: #DELETE order
             delete_order()
 
-        elif om > 5: invaild()
+        elif om == 6:
+            fetch_table_data('Orders')
+            export_csv('Orders')
+
+        elif om > 6: invaild()
     
     if mm > 3: 
         invaild()
