@@ -7,7 +7,7 @@
 - Create a product, courier, or order and add it to a list
 - View all products, couriers, or orders
 - Update the status of an order
-- persist the data in Docker database
+- persist the data in Docker and MySQL database
 - Delete or update a product, order or courier
 - List orders by status or courier
 - CURD a list of customers
